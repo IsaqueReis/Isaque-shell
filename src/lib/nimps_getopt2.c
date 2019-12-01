@@ -5,135 +5,105 @@
 #include <sys/types.h>
 
 
-#define ARG_ERROR 1
-#define ALOC_ERROR 2
+#define ARG_ERROR                                                              1
+#define ALOC_ERROR                                                             2
 
 char *optarg;
-int optind, opterr, optopt, argind = 0;
+int optind = 1, opterr = 0, optopt = '?';
 char getopt(int argc, char *const argv[], const char *optstring)
 {
-    char ret = '@';
-    for(int i = argind; i < argc; i++)
+    for(int i = optind; i < argc; i++)
     {
-        //verify if arg contains optstring
-        for(int j = 0; optstring[j] != '\0'; j++)
+        for(int j = 0; optstring[j] != '\0';)
         {
-            printf("argv: %s x optstring %c.\n", argv[i], optstring[j]);
-            if(strlen(argv[i]) == 2) //simple flag value
+            printf("argv: [%s] - optstr[%c]\n", argv[i], optstring[j]);
+            if(strlen(argv[i]) == 2) //verify if its a flag
             {
-                if(argv[i][0] == '-' && argv[i][1] != '-')
+                if(argv[i][0] == '-' && argv[i][1] != '-') 
                 {
-                    printf("%s its a simple flag\n", argv[i]);
-                    if(optstring[j] == argv[i][1]) //match 
+                    printf("\targv: [%s] is a flag!\n", argv[i]);
+                    if(argv[i][1] == optstring[j]) //match
                     {
+                        printf("\targv: [%s] combines with flag[%c]\n", argv[i], optstring[j]);
+
                         if(optstring[j + 1] == ':')
                         {
-                            printf("flag %s have an arg\n", argv[i]);
-                            optarg = strdup(argv[j + 1]);
-                            if(!optarg)
+                            printf("\topt [%c] requires argument!\n", optstring[j]);
+                            //is a valid arg
+                            if(strlen(argv[i + 1]) > 0 && argv[i + 1][0] != '-')
                             {
-                                errno = ENOMEM;
-                                perror("getopt");
-                                opterr = ALOC_ERROR;
-                                exit(opterr);
-                            }//if(!optarg)
+                                printf("\tflag [%s] have valid argument!\n", argv[i]);
 
-                            if(optarg[0] == '-' || strlen(optarg) == 0)
-                            {
-                                printf("argument %s of flag %s incorrect\n", optarg, argv[i]);
-                                opterr = ARG_ERROR;
-                                optopt = optstring[j];
-                                optind = j;
-                                ret = ':';
-                                break;
-                            }//if(optarg[0] == '-' || strlen(optarg) == 0)
-
+                                optarg = strdup(argv[i + 1]);
+                                if(!optarg)
+                                {
+                                    errno = ENOMEM;
+                                    perror("getopt");
+                                    exit(1);
+                                }
+                                printf("\targ: [%s]\n", optarg);
+                                printf("\tret val: [%c]\n", optstring[j]);
+                                j+= 2;
+                            } 
+                            
                             else 
                             {
-                                printf("argument %s of flag %s correct\n", optarg, argv[i]);
-                                optopt = optstring[j];
-                                optind++;
-                                optind = j;
-                                ret = optstring[j];
-                                break;
+                                printf("\tflag [%s] have invalid argument!\n", argv[i]);
+                                printf("\targ: [%s]\n", argv[i + 1]);
+                                printf("\tret val: [:]\n");
+                                j+= 2;
+                                
                             }
-                        }//if(optstring[j + 1] == ':')
-
+                        }
+                        
                         else 
                         {
-                            optopt = optstring[j];
-                            optind = j;
-                            ret = optstring[j];
-                            break;
+                            printf("\tret val: [%c]\n", optstring[j]);
                         }
-                    }//if(optstring[j] == argv[i][1])
 
+                    }
                     else 
                     {
-                        continue;
+                         printf("\targv: [%s] dont combine with flag[%c]\n", argv[i], optstring[j]);
+                         printf("\tret val: [?]\n");
                     }
+                     
                 }
-            }// if(strlen(argv[i]) == 2)
+                 
+                else 
+                {
+                    printf("\targv: [%s] is not a flag\n", argv[i]);
+                }
+            }
+            else if(strlen(argv[i]) > 2) 
+            {
+                /*
+                if(argv[i][0] == '-' && argv[i][1] == '-' && argv[i][2] != '-')
+                {
+                    printf("\targv: [%s] is a flag!\n", argv[i]);
+                } 
+                
+                else if (argv[i][0] == '-' && argv[i][1] != '-')
+                {
+                    printf("\targv: [%s] is a flag\n", argv[i]);
+                }
+                
+                else
+                {
+                    printf("\targv: [%s] is not a flag\n", argv[i]);
+                } 
+                */
+            } 
 
             else 
             {
-                if(argv[i][0] == '-' && argv[i][1] == '-')
-                {
-                    printf("%s its a flag\n", argv[i]);
-
-                    if(optstring[i] == argv[j][2]) //match
-                    {
-                        if(optstring[j + 1] == ':')
-                        {
-                            printf("flag %s have an arg\n", argv[i]);
-                            optarg = strdup(argv[j + 1]);
-                            if(!optarg)
-                            {
-                                errno = ENOMEM;
-                                perror("getopt");
-                                opterr = ALOC_ERROR;
-                                exit(opterr);
-                            }//if(!optarg)
-
-                            if(optarg[0] == '-' || strlen(optarg) == 0)
-                            {
-                                printf("argument %s of flag %s incorrect\n", optarg, argv[i]);
-                                opterr = ARG_ERROR;
-                                optopt = optstring[j];
-                                optind = j;
-                                ret = ':';
-                                break;
-                            }//if(optarg[0] == '-' || strlen(optarg) == 0)
-
-                            else 
-                            {
-                                printf("argument %s of flag %s correct\n", optarg, argv[i]);
-                                optopt = optstring[j];
-                                optind++;
-                                optind = j;
-                                ret = optstring[j];
-                                break;
-                            }
-                        }//if(optstring[j + 1] == ':')
-
-                        else 
-                        {
-                            optopt = optstring[j];
-                            optind = j;
-                            ret = optstring[j];
-                            break;
-                        }
-                    }//if(optstring[i] == argv[j][2])
-                }//(argv[i][0] == '-' && argv[i][1] == '-')
+                printf("\targv: [%s] is not a flag\n", argv[i]);
             }
-            optopt = optstring[j];
-            optind = j;
-            ret = '?';
-        }//for(int j = optind; optstring[j] != '\0'; j++)
-        return ret;
-        argind++;
-    }//for(int i = 1; i < argc; i++)
 
+            j++;
+        }
+        optind++;
+    }
     return -1;
 }
 
@@ -143,9 +113,9 @@ int main(int argc, char *argv[])
     int opt = 0;
     while((opt = getopt(argc, argv, "m:p")) != - 1)
     {
-        printf("%c", (char) opt);
+        //printf("%c", (char) opt);
     }
 
-    printf("\n%s\n", optarg);
+    printf("\n%s %d %d %c\n", optarg, optind, opterr, optopt);
     return 0;
 }
