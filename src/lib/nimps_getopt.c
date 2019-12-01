@@ -4,8 +4,9 @@
 #include <errno.h>
 #include <sys/types.h>
 
+
 char *optarg;
-int optind = 0, opterr = 0, optopt;
+int optind, opterr, optopt;
 char getopt(int argc, char *const argv[], const char *optstring)
 {
     for(int i = optind; optstring[i] != '\0'; i++)
@@ -42,18 +43,11 @@ char getopt(int argc, char *const argv[], const char *optstring)
                             if(optarg[0] == '-' || strlen(optarg) == 0)
                             {
                                 printf("argument %s of flag %s incorrect\n", optarg, argv[j]);
-                                opterr = 1;
-                                optopt = optstring[i];
-                                optind++;
-                                return ':';
                             } 
 
                             else 
                             {
                                 printf("argument %s of flag %s correct\n", optarg, argv[j]);
-                                optopt = optstring[i];
-                                optind++;
-                                return optstring[i];
                             }
                         }
 
