@@ -4,14 +4,14 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#include "nimps_getopt.h"
+//#include "nimps_getopt.h"
 
 #define ARG_ERROR                                                              1
 #define ALOC_ERROR                                                             2
 
 char *optarg;
 int optind = 1, opterr = 0, optopt = '?';
-char nimps_getopt(int argc, char *const argv[], const char *optstring)
+char getopt(int argc, char *const argv[], const char *optstring)
 {
     char ret = '?';
 
@@ -19,18 +19,24 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
     {
         for(int j = 0; optstring[j] != '\0';)
         {
-            if(strlen(argv[i]) == 2)
+            //printf("argv: [%s] - optstr[%c]\n", argv[i], optstring[j]);
+            if(strlen(argv[i]) == 2) //verify if its a flag
             {
                 if(argv[i][0] == '-' && argv[i][1] != '-') 
                 {
-                    if(argv[i][1] == optstring[j])
+                    //printf("\targv: [%s] is a flag!\n", argv[i]);
+                    if(argv[i][1] == optstring[j]) //match
                     {
+                        //printf("\targv: [%s] combines with flag[%c]\n", argv[i], optstring[j]);
                         if(optstring[j + 1] == ':')
                         {
+                            //printf("\topt [%c] requires argument!\n", optstring[j]);
+                            //is a valid arg
                             if(i < argc -1)
                             {
                                 if(strlen(argv[i + 1]) > 0 && argv[i + 1][0] != '-')
                                 {
+                                    //printf("\tflag [%s] have valid argument!\n", argv[i]);
 
                                     optarg = strdup(argv[i + 1]);
                                     if(!optarg)
@@ -39,6 +45,8 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                         perror("getopt");
                                         exit(1);
                                     }
+                                    //printf("\targ: [%s]\n", optarg);
+                                    //printf("\tret val: [%c]\n", optstring[j]);
                                     ret = optstring[j];
                                     optopt = optstring[j];
                                     j+= 2;
@@ -46,6 +54,9 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                             
                                 else 
                                 {
+                                    //printf("\tflag [%s] have invalid argument!\n", argv[i]);
+                                    //printf("\targ: [%s]\n", argv[i + 1]);
+                                    //printf("\tret val: [:]\n");
                                     ret = ':';
                                     opterr = 1;
                                     optopt = ':';
@@ -55,6 +66,9 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                             
                             else
                             {
+                                 //printf("\tflag [%s] have invalid argument!\n", argv[i]);
+                                 //printf("\targ: [%s]\n", argv[i + 1]);
+                                 //printf("\tret val: [:]\n");
                                  ret = ':';
                                  opterr = 1;
                                  optopt = ':';
@@ -64,33 +78,38 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                         
                         else 
                         {
+                            //printf("\tret val: [%c]\n", optstring[j]);
                             ret = optstring[j];
                             optopt = optstring[j];
                         }
-                    }
-                }
+                    }//(argv[i][1] == optstring[j]) //match
+                }//if(argv[i][0] == '-' && argv[i][1] != '-') 
                  
                 else 
                 {
+                    //printf("\targv: [%s] is not a flag\n", argv[i]);
                     ret = '#';
                     
                 }
             }
-
             else if(strlen(argv[i]) > 2) 
             {
                 
                 if(argv[i][0] == '-' && argv[i][1] == '-' && argv[i][2] != '-')
                 {
-                    
-                    if(argv[i][2] == optstring[j])
+                    //printf("\targv: [%s] is a flag!\n", argv[i]);
+                    if(argv[i][2] == optstring[j]) //match
                     {
+                        //printf("\targv: [%s] combines with flag[%c]\n", argv[i], optstring[j]);
                         if(optstring[j + 1] == ':')
                         {
+                            //printf("\topt [%c] requires argument!\n", optstring[j]);
+                            //is a valid arg
                             if(i < argc -1)
                             {
                                 if(strlen(argv[i + 1]) > 0 && argv[i + 1][0] != '-')
                                 {
+                                    //printf("\tflag [%s] have valid argument!\n", argv[i]);
 
                                     optarg = strdup(argv[i + 1]);
                                     if(!optarg)
@@ -99,7 +118,8 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                         perror("getopt");
                                         exit(1);
                                     }
-
+                                    //printf("\targ: [%s]\n", optarg);
+                                    //printf("\tret val: [%c]\n", optstring[j]);
                                     ret = optstring[j];
                                     optopt = optstring[j];
                                     j+= 2;
@@ -107,6 +127,9 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                             
                                 else 
                                 {
+                                    //printf("\tflag [%s] have invalid argument!\n", argv[i]);
+                                    //printf("\targ: [%s]\n", argv[i + 1]);
+                                    //printf("\tret val: [:]\n");
                                     ret = ':';
                                     opterr = 1;
                                     optopt = ':';
@@ -116,6 +139,9 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                             
                             else
                             {
+                                 //printf("\tflag [%s] have invalid argument!\n", argv[i]);
+                                 //printf("\targ: [%s]\n", argv[i + 1]);
+                                 //printf("\tret val: [:]\n");
                                  ret = ':';
                                  opterr = 1;
                                  optopt = ':';
@@ -125,13 +151,15 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                         
                         else 
                         {
+                            //printf("\tret val: [%c]\n", optstring[j]);
                             ret = optstring[j];
                             optopt = optstring[j];
                         }
-                    }
-                }      
+                    }//(argv[i][1] == optstring[j]) //match
+                }//if(argv[i][0] == '-' && argv[i][1] == '-' && argv[i][2] != '-')           
                 else
                 {
+                    //printf("\targv: [%s] is not a flag\n", argv[i]);
                     ret = '#';
                 } 
                 
@@ -139,6 +167,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
 
             else 
             {
+                //printf("\targv: [%s] is not a flag\n", argv[i]);
                 ret = '#';
             }
 

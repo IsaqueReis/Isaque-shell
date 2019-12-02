@@ -2,8 +2,11 @@
 shell unix nada impressionante (not impressive shell)
 
 # LISTA DE TAREFAS
+   # Biblioteca 
+   - [x] getopt  - utilitario de linha de comando
+   - [x] mkdir   - pré-tratamento para o usuo da system call mkdir
    # Programas embutidos do shell
-   - [x] mkdir
+   - [ ] mkdir
    - [ ] rmdir
    - [ ] cd e pwd
    - [ ] ls(-l e -R)
