@@ -11,9 +11,11 @@
 
 char *optarg;
 int optind = 1, opterr = 0, optopt = '?';
-char nimps_getopt(int argc, char *const argv[], const char *optstring)
+char 
+nimps_getopt(int argc, char *const argv[], const char *optstring)
 {
     char ret = '?';
+    int ret_type = 0;               //if 0, optind++ else if > 0 optind += 2
 
     for(int i = optind; i < argc; i++)
     {
@@ -42,6 +44,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                     ret = optstring[j];
                                     optopt = optstring[j];
                                     j+= 2;
+                                    ret_type = 1;
                                 } 
                             
                                 else 
@@ -50,6 +53,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                     opterr = 1;
                                     optopt = ':';
                                     j+= 2;
+                                    ret_type = 1;
                                 }
                             } 
                             
@@ -59,6 +63,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                  opterr = 1;
                                  optopt = ':';
                                  j+= 2;
+                                 ret_type = 1;
                             } 
                         }
                         
@@ -66,6 +71,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                         {
                             ret = optstring[j];
                             optopt = optstring[j];
+                            ret_type = 0;
                         }
                     }
                 }
@@ -103,6 +109,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                     ret = optstring[j];
                                     optopt = optstring[j];
                                     j+= 2;
+                                    ret_type = 1;
                                 } 
                             
                                 else 
@@ -111,6 +118,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                     opterr = 1;
                                     optopt = ':';
                                     j+= 2;
+                                    ret_type = 1;
                                 }
                             } 
                             
@@ -120,6 +128,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                                  opterr = 1;
                                  optopt = ':';
                                  j+= 2;
+                                 ret_type = 1;
                             } 
                         }
                         
@@ -127,6 +136,7 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
                         {
                             ret = optstring[j];
                             optopt = optstring[j];
+                            ret_type = 0;
                         }
                     }
                 }      
@@ -144,7 +154,11 @@ char nimps_getopt(int argc, char *const argv[], const char *optstring)
 
             j++;
         }
-        optind++;
+        if(ret_type == 0)
+            optind++;
+        else 
+            optind += 2;
+
         return ret;
     }
     return -1;

@@ -1,21 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include "nimps_mkdir.h"
 #include "nimps_getopt.h"
+#include "make_path.h"
 
 int main(int argc, char *argv[])
 {
-    int opt = 0;
-    while((opt = getopt(argc, argv, "m:p:")) != - 1)
-    {
-        printf("%c", (char) opt);
-    }
+    char path[] = "e/.////.///c";
 
-    printf("\n");
+    char *s = clean_path(path);
 
-    printf("%d %d %c %s\n", optind, opterr, optopt, optarg);
+    printf("cleanded : %s \n", s);
+
+    char s1[] = "asssads";
+    char s2[] = "safsda";
+    if(nimps_make_path(s1, s2) != -1)
+        printf("%s\n", s1);
     return 0;
 }
 

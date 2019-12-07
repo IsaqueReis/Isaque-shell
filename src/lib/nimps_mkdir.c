@@ -5,7 +5,8 @@
 #include "nimps_mkdir.h"
 
 
-int nimps_mkdir(const char *dir, mode_t mode)
+int 
+nimps_mkdir(const char *dir, mode_t mode)
 {
     int ret = 0;                        
     char *tmp_dir;
