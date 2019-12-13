@@ -1,10 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <errno.h>
 
 #include "nimps_mkdir.h"
 
-
+//mkdir
+//-----
+//cria um diretório dado seu path e o seu modo(chmod)
 int 
 nimps_mkdir(const char *dir, mode_t mode)
 {

@@ -2,6 +2,7 @@
     "files.associations": {
         "nimps_getopt.h": "c",
         "make_path.h": "c",
-        "ctype.h": "c"
+        "ctype.h": "c",
+        "nimps_make_path.h": "c"
     }
 }
