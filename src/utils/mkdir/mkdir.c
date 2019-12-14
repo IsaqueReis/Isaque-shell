@@ -5,10 +5,10 @@
 #include <errno.h>
 #include <string.h>
 
-#include "../lib/nimps_mkdir.h"
-#include "../lib/nimps_getopt.h"
-#include "../lib/nimps_make_path.h"
-#include "../lib/nimps_list.h"
+#include "../../lib/nimps_mkdir.h"
+#include "../../lib/nimps_getopt.h"
+#include "../../lib/nimps_make_path.h"
+#include "../../lib/nimps_list.h"
 
 #define MAX_ARG_SIZE                                                       4096
 
@@ -20,48 +20,8 @@ char program_name[] = "mkdir";
 char program_author[] = "isaqreis";
 char program_version[] = "0.0.0.0.0.0.0.0.0.0.0.0.1";
 
-void print_args(List args)
-{
-    for(int i = 1; i <= listNOI(args); i++)
-    {
-        printf("arg:%s\n", (char*) listGetI(args, i));
-    }
-}
-void print_usage()
-{
-    printf("Uso: mkdir [OPTION]... DIRECTORY...\n");
-    printf("Cria o DIRECTORIO(os), se eles já não existem.\n");
-    printf("\n");
-    printf("-m, --mode=MODE   seta o filemode (como em chmod), não a=rwx - umask\n");
-    printf("-p, --parents     se não houver erro, cria a arvore de diretórios.\n");
-    printf("-v, --verbose     printa uma mensagem pra cada diretório criado.\n");
-    printf("--help     mostra a ajuda e saí.\n");
-    printf("--version  mostra a versão do programa e saí.\n");
-    exit(EXIT_SUCCESS);
-}
-
-void print_version()
-{
-    printf("Autor: %s\nVersão: %s\n", program_author, program_version);
-    exit(EXIT_SUCCESS);
-}
-
 int 
-make_directory(List dirs, uint32_t mode)
-{
-    int ret = 0;
-    for(int i = 0; i < listNOI(dirs); i++)
-    {
-        if( (ret = _make_directory((char*) listGetI(dirs, i), mode)) != -1 )
-        {
-            printf("error\n");
-            continue;
-        }
-    }
-}
-
-int 
-_make_directory(char *path, uint32_t mode)
+make_directory(char *path, uint32_t mode)
 {
     char *path_str = (char *) calloc((strlen(path) + 1), sizeof(char));
     if(!path_str)
@@ -85,45 +45,52 @@ _make_directory(char *path, uint32_t mode)
         for(int i = 0; i < len; i++)
         {
             if( (nimps_mkdir(tmp_path, mode) == -1) )  
-            {
-                perror(program_name);
                 return -1;    
-            }
 
             if(verbose)
-            {
                 printf("%s: diretório '%s' criado\n", program_name, dir_tokens[i]);
-            }
 
-            if( (tmp_path = nimps_make_path(tmp_path, dir_tokens[i])) == NULL )
+            if( !(tmp_path = nimps_make_path(tmp_path, dir_tokens[i])) )
                 return -1;
         }
     } 
     else
     {
 
-        if( verify_path_name(path) )
-        {
-            if( (nimps_mkdir(path, mode) == -1) ) 
-            {
-                perror(program_name);
-                return -1;    
-            }
+        if( (nimps_mkdir(path, mode) == -1) ) 
+            return -1;    
 
-            if(verbose)
-            {
-                printf("%s: diretório '%s' criado\n", program_name, path);
-            }
-        }
-
-        else 
-        {
-            printf("%s: nome de diretorio inválido. [%s]\n", program_name, path);
-            return -1;
-        }
+        if(verbose)
+            printf("%s: diretório '%s' criado\n", program_name, path);
     }
     
     return 0; 
+}
+
+void make_directoryies(List args, mode_t m)
+{
+    for(int i = 1; i <= listNOI(args); i++)
+        if( (make_directory((char*) listGetI(args, i), m)) == -1)
+            perror(program_name);
+}
+
+void print_usage()
+{
+    printf("Uso: mkdir [OPTION]... DIRECTORY...\n");
+    printf("Cria o DIRECTORIO(os), se eles já não existem.\n");
+    printf("\n");
+    printf("-m, --mode=MODE   seta o filemode (como em chmod), não a=rwx - umask\n");
+    printf("-p, --parents     se não houver erro, cria a arvore de diretórios.\n");
+    printf("-v, --verbose     printa uma mensagem pra cada diretório criado.\n");
+    printf("--help     mostra a ajuda e saí.\n");
+    printf("--version  mostra a versão do programa e saí.\n");
+    exit(EXIT_SUCCESS);
+}
+
+void print_version()
+{
+    printf("\tPrograma:%s\n\tAutor: %s\n\tVersão: %s\n",program_name, program_author, program_version);
+    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char *argv[])
@@ -133,7 +100,7 @@ int main(int argc, char *argv[])
 
     while((c = nimps_getopt(argc, argv, "m:phv")) != -1)
     {
-        printf("%c\n", c);
+        //printf("%c\n", c);
         switch(c)
         {
             case 'm' : mode = atoi(optarg); break;
@@ -156,11 +123,12 @@ int main(int argc, char *argv[])
                 
                 break;
             } 
-            case ':' : printf("argumento da flag '%s' inválido.\n", argv[optopt]); print_usage(); break;
+            case ':' : printf("argumento de flag inválido.\n"); print_usage(); break;
             case '?' : printf("flag incorreta inserida.\n"); print_usage(); break;
         }
     }
-    
-    make_directory(args, mode);
+
+    make_directoryies(args, mode);
+
     return 0;
 }

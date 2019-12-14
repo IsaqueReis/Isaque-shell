@@ -1,12 +1,15 @@
 /*
-   This file contains the function prototypes for a List data structure.
-
+   This file contains the function prototypes for a list data structure.
    by Autran 2018
+
+   Implementation of prototypes
+   by Isaque 2018
 */
 
-typedef void* List;  		// tipo "fantasia"
-typedef void* ItemList; 	// tipo "fantasia"
-typedef void* KeyItem;		// tipo "fantasia"
+//types definition
+typedef void* list;
+typedef void* list_item;
+typedef void* key_item;
 
 // listCreate
 // ----------
@@ -14,7 +17,7 @@ typedef void* KeyItem;		// tipo "fantasia"
 //
 // Return a pointer to a list; or return NULL, in error case.
 
-List listCreate ();
+list list_create ();
 
 
 // listDestroy
@@ -24,7 +27,7 @@ List listCreate ();
 // It is up to the application to release (free) the space 
 // used by the items stored in l BEFORE destroying l.
 
-void listDestroy (List l);
+void list_dealloc (list l);
 
 
 // listGetI
@@ -38,7 +41,7 @@ void listDestroy (List l);
 // - to guarantee that l points to the proper list;
 // - to guarantee that p > 0.
 
-ItemList listGetI (List l, int p);
+list_item get (list l, int p);
 
 
 // listIns
@@ -53,14 +56,14 @@ ItemList listGetI (List l, int p);
 // - to guarantee that i and l points to the proper item and list;
 // - to guarantee that p > 0.
 
-int listIns (ItemList i, int p, List l);
+int add (list_item i, int p, list l);
 
 
 // listNOI
 // -------
 // Return the number of items in l.
 
-int listNOI (List l);
+int count (list l);
 
 
 // listRmv
@@ -72,7 +75,7 @@ int listNOI (List l);
 // It is up to the application:
 // - to guarantee that i and l points to the proper item and list.
 
-ItemList  listRmv (ItemList i, List l);
+list_item  list_rmv (list_item i, list l);
 
 
 // listSearch
@@ -93,7 +96,7 @@ ItemList  listRmv (ItemList i, List l);
 // It is up to the application:
 // - to guarantee that k and l points to the proper key and list.
 
-ItemList listSearch (KeyItem k, List l, int (*cmp) (const ItemList x, const ItemList y));
+list_item list_search (key_item k, list l, int (*cmp) (const list_item x, const list_item y));
 
 
 // listSort
@@ -109,9 +112,9 @@ ItemList listSearch (KeyItem k, List l, int (*cmp) (const ItemList x, const Item
 // x > y, respectively.
 // 
 // It is up to the application to observe that 
-// - l points to a List;
+// - l points to a list;
 // - l is NOT empty;
 // - x is a pointer to a pointer to (**) the item to be compared; so is y.
 //   Therefore, cmp must de-reference these variables before comparing them.
 
-List  listSort (List l, int (*cmp) (const ItemList x, const ItemList y));
+list  list_sort (list l, int (*cmp) (const list_item x, const list_item y));

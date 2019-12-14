@@ -9,7 +9,7 @@ shell unix nada impressionante
    - [x] list - lista encadeada para o uso de filas, pilhas, listas, árvores, strings, etc..
    # Programas embutidos do shell
    - [x] mkdir
-   - [ ] rmdir
+   - [x] rmdir
    - [ ] cd e pwd
    - [ ] ls(-l e -R)
    - [ ] cp

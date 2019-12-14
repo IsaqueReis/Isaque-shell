@@ -19,8 +19,8 @@ struct node
 typedef struct node* NODE;
 
 
-List 
-listCreate()
+list 
+list_create ()
 {
     LIST l = (LIST) calloc(1, sizeof(LIST));
     l->p = l->u = NULL;
@@ -30,7 +30,7 @@ listCreate()
 }
 
 void 
-listDestroy(List list)
+list_dealloc (list list)
 {
     LIST l = (LIST) list;
     NODE current = NULL;            //nó atual
@@ -50,8 +50,8 @@ listDestroy(List list)
     free(l);                        //desaloca a memoria do cabeçalho da lista
 }
 
-ItemList 
-listGetI(List list, int p)
+list_item 
+get (list list, int p)
 {
     LIST l = (LIST) list;
     NODE current = l->p;
@@ -69,7 +69,7 @@ listGetI(List list, int p)
 }
 
 int 
-listIns(ItemList i, int p, List list)
+add (list_item i, int p, list list)
 {
     LIST l = (LIST) list;
     NODE current = NULL; //nó atual
@@ -84,7 +84,7 @@ listIns(ItemList i, int p, List list)
     if(p == 1)  //inserir na cabeça da lista
     {
         tmp_node->next = l->p;  //o proximo elemento será o que antes era o primeiro elemento da lista
-        l->p = tmp_node;        //o primeiro elemento da lista se torna o nó com o ItemList i
+        l->p = tmp_node;        //o primeiro elemento da lista se torna o nó com o list_item i
 
         /*o último elemento está vazio? Se sim sete-o como o nó que criamos, 
          se não, deixe estar como está*/
@@ -111,14 +111,14 @@ listIns(ItemList i, int p, List list)
 }
 
 int 
-listNOI(List list)
+count (list list)
 {
     LIST l = (LIST) list;
     return l->n;
 }
 
-ItemList 
-listRmv(ItemList i, List list)
+list_item 
+list_rmv (list_item i, list list)
 {
     LIST l  = (LIST) list;
     NODE current = NULL;
@@ -148,8 +148,8 @@ listRmv(ItemList i, List list)
     return current;
 }
 
-ItemList 
-listSearch(KeyItem k, List list, int (*cmp) (const ItemList x, const ItemList y))
+list_item 
+list_search (key_item k, list list, int (*cmp) (const list_item x, const list_item y))
 {
     LIST l = (LIST) list;
     NODE current = NULL;

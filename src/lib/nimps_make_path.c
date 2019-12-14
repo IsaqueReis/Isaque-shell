@@ -55,6 +55,11 @@ char
 int 
 verify_path_name(char *s)
 {
+  //verifica se o ultimo caractere é uma barra, caso seja
+  //ainda sim é um diretório válido
+  if(s[strlen(s) - 1] == '/')
+    return 1;
+
   for(int i = 0; s[i] != '\0'; i++)
   {
     if(s[i] == '/')
@@ -85,4 +90,43 @@ nimps_make_path(char *fst_path, char *snd_path)
   } 
   
   return NULL;
+}
+
+//cria um path unix composto
+char* 
+nimps_make_multiple_path(char *fst_path, char *snd_path)
+{
+  char *tmp_path = NULL;
+
+  strcat(fst_path, "/");
+  tmp_path = strdup(fst_path);
+  if(!tmp_path)
+  {
+    errno = ENOMEM;
+    return NULL;
+  }
+    
+  strcat(tmp_path, snd_path);
+  return tmp_path;
+}
+
+//cria um path unix a partir de uma lista de paths váidos
+char*
+nimps_make_path_from_list(char **paths)
+{
+  char *tmp_path = strdup(paths[0]);
+
+  if(!tmp_path)
+  {
+    errno = ENOMEM;
+    exit(1);
+  }
+
+  for(int i = 0; paths[i + 1] != NULL; i++)
+  {
+    if( (tmp_path = nimps_make_multiple_path(tmp_path, paths[i + 1])) == NULL )
+      return NULL;
+  } 
+
+  return tmp_path;
 }
