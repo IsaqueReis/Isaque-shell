@@ -67,10 +67,10 @@ make_directory(char *path, uint32_t mode)
     return 0; 
 }
 
-void make_directoryies(List args, mode_t m)
+void make_directoryies(list args, mode_t m)
 {
-    for(int i = 1; i <= listNOI(args); i++)
-        if( (make_directory((char*) listGetI(args, i), m)) == -1)
+    for(int i = 1; i <= count(args); i++)
+        if( (make_directory((char*) get(args, i), m)) == -1)
             perror(program_name);
 }
 
@@ -96,7 +96,7 @@ void print_version()
 int main(int argc, char *argv[])
 {
     char c = 0;
-    List args = listCreate();
+    list args = list_create();
 
     while((c = nimps_getopt(argc, argv, "m:phv")) != -1)
     {
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
                 strcpy(arg, argv[optopt-1]);
                 //printf("\targ:%s\n", arg);
                 
-                listIns(arg, listNOI(args)+1, args);
+                add(arg, count(args)+1, args);
                 
                 break;
             } 

@@ -6,14 +6,17 @@ shell unix nada impressionante
    - [x] getopt  - utilitario de linha de comando
    - [x] mkdir   - pré-tratamento para o uso da system call mkdir
    - [x] make_path - manipula strings contendo nomes de diretórios
-   - [x] list - lista encadeada para o uso de filas, pilhas, listas, árvores, strings, etc..
+   - [x] list - lista encadeada para o uso de filas, pilhas, listas, árvores,
+     strings, etc..
+   - [x] directory_helper - utilitario para manipular diretorios
    # Programas embutidos do shell
    - [x] mkdir
    - [x] rmdir
-   - [ ] cd e pwd
+   - [x] pwd
+   - [x] cd
    - [ ] ls(-l e -R)
    - [ ] cp
-   - [ ] ./ (executar um comando)
+   - [x] ./ (executar um comando)
    # Funcionalidades obrigatórias
    - [ ] pipes
    - [ ] redirecionamento I/O

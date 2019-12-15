@@ -1,14 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/types.h>
 
+#include "../lib/nimps_make_path.h"
+#include "../lib/nimps_directory_helper.h"
+#include "../lib/nimps_list.h"
 #include "../lib/nimps_make_path.h"
 
 #define PATH_MAX 4096
 #define INPUT_BUFF_SIZE 4096
 #define NIMPS_CFG_FILE "nimps.cfg"
+
+char *current_bin, *working_directory;
+
+void allocation_error()
+{
+    fprintf(stderr, "allocation error!");
+    exit(EXIT_FAILURE);
+}
+
+char *buffered_input()
+{
+    char *output = (char*) calloc(INPUT_BUFF_SIZE, sizeof(char));
+    int c = '@';
+    int cursor = 0;
+
+    if(!output)
+        allocation_error();
+
+    while((c = getchar()))
+    {
+        if(cursor >= INPUT_BUFF_SIZE)
+        {
+            output = realloc(output, (cursor + INPUT_BUFF_SIZE));
+            if(!output)
+                allocation_error();
+        }
+
+        if(c == '\n' || c == EOF)
+            return output;
+
+        output[cursor] = c;
+        cursor++;
+    }
+}
 
 void load_cwd()
 {
@@ -23,10 +62,7 @@ void load_cwd()
 
     s = (char*) calloc(PATH_MAX, sizeof(char));
     if(!s)
-    {
-        fprintf(stderr, "allocation error\n");
-        exit(EXIT_FAILURE);
-    }
+        allocation_error();
 
     if( !(s = getcwd(s, PATH_MAX)) )
     {
@@ -34,16 +70,45 @@ void load_cwd()
         exit(EXIT_FAILURE);
     }
 
-    fprintf(fp, "$WD:%s\n", s);
+    fprintf(fp, "$WD=%s\n", s);
+    fprintf(fp, "$BIN=/bin\n");
     fclose(fp);
 
     return;
 }
 
-//retorna o path absoluto do diretório atual ou 
-//null caso ocorra algum error
-char 
-*getwd_from_file()
+//baseada na versao de https://brennan.io/2015/01/16/write-a-shell-in-c/
+int 
+exec_and_wait(char **args, char *path)
+{
+    pid_t pid, wpid;
+    int status = 0;
+
+    pid = fork();
+    if(pid == 0)
+    {
+        //executa o arquivo
+        if( execvp(path, args) == -1)
+            perror("nimps");
+        exit(EXIT_FAILURE);
+    }
+    else if(pid < 0)
+    {
+        perror("nimps");
+    }
+    else 
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+
+    return 1;
+}
+
+//carrega as variaveis de configuracao do arquivo
+void load_config()
 {
     FILE *fp;
     char s[PATH_MAX] = {'\0'};
@@ -56,24 +121,37 @@ char
         exit(EXIT_FAILURE);
     } 
 
-    while( (fscanf(fp, "%[^\n]", s)) != EOF )
+    while( (fscanf(fp, "%s", s)) != EOF )
     {
-        char **tokens = nimps_split_line(s, ":");
-        if( strcmp(tokens[0], "$WD") == 0)
-        {
-            output = (char*) calloc(strlen(tokens[1] + 1), sizeof(char));
-            if(!output)
-            {
-                fprintf(stderr,"allocation error!\n");
-                exit(EXIT_FAILURE);
-            }
+        char **tokens = nimps_split_line(s, "=");
 
-            strcpy(output, tokens[1]);
-            return output;
+        if( strcmp(tokens[0], "$WD") == 0 )
+        {
+            working_directory = (char*) calloc(strlen(tokens[1] + 1), sizeof(char));
+            if(!working_directory)
+                allocation_error();
+
+            strcpy(working_directory, tokens[1]);
         }
+
+        else if( strcmp(tokens[0], "$BIN") == 0 )
+        {
+            current_bin = (char*) calloc(strlen(tokens[1] + 1), sizeof(char));
+            if(!working_directory)
+                allocation_error();
+
+            strcpy(current_bin, tokens[1]);
+        }
+        
     }
 
-    return NULL;
+    return;
+}
+
+int 
+change_directory(char *path_to)
+{
+
 }
 
 int process_input(char *input)
@@ -81,28 +159,45 @@ int process_input(char *input)
     if(strcmp("exit", input) == 0)
         exit(EXIT_SUCCESS);
     else if(strcmp("pwd", input) == 0)
-        printf("%s\n", getwd_from_file());
-    else 
-        printf("%s\n", input);
+        printf("%s\n", working_directory);
+    else if(strcmp("dir", input) == 0)
+    {
+        if( print_all_files("/bin") == -1)
+            perror("print directoryies");
+    }
+    else if(strcmp("bin", input) == 0)
+        printf("%s\n", current_bin);
+    else
+    {
+        list exec_files = get_dir_file_names(current_bin);
+        char **input_tokens = nimps_split_line(input, " ");
+
+        for(int i = 0; i < count(exec_files); i++)
+        {
+            if(strcmp(input_tokens[0], (char*) get(exec_files, i)) == 0)
+            {
+                char *absolute_exec_path = 
+                    nimps_make_multiple_path(current_bin, input_tokens[0]);
+                if(!absolute_exec_path)
+                    allocation_error();
+                    
+                exec_and_wait(input_tokens, absolute_exec_path);
+            }
+        }
+    }
 }
 
 int 
 main(int argc, char *argv[])
 {
-    load_cwd(); //load current working directory
-    char *input = (char*) calloc(INPUT_BUFF_SIZE, sizeof(char));
-    char c = '@';
-    int cursor = 0;
-    if(!input)
-    {
-        fprintf(stderr, "allocation error!");
-        exit(EXIT_FAILURE);
-    }
+    load_cwd();     //cria o arquivo com as variaveis de ambiente
+    load_config();  //carrega as configurações do arquivo
 
-    while( (printf("> ") > 0) && (scanf("%4096s[^\n]", input) != EOF) )
+    while(true)
     {
-        getchar();
-        process_input(input);
+        printf("nimps: ");
+        process_input(buffered_input());
     }
+   
     return 0;
 }
