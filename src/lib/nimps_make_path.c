@@ -69,45 +69,43 @@ verify_path_name(char *s)
   return 1;
 } 
 
-//cria um path unix dado dois paths válidos
+//cria um path unix dado dois paths atomicos válidos
 char* 
 nimps_make_path(char *fst_path, char *snd_path)
 {
-  char *tmp_path = NULL;
+  char *buff = NULL;
 
   if( verify_path_name(fst_path) && verify_path_name(snd_path) )
   {
-    strcat(fst_path, "/");
-    tmp_path = strdup(fst_path);
-    if(!tmp_path)
+    buff = (char*) calloc(((strlen(fst_path) 
+                            + strlen(snd_path)) + TOK_BUFSIZE), sizeof(char));
+    if(!buff)
     {
-      errno = ENOMEM;
-      return NULL;
+      fprintf(stderr,"allocation error!\n");
+      exit(EXIT_FAILURE);
     }
     
-    strcat(tmp_path, snd_path);
-    return tmp_path;
+    sprintf(buff, "%s/%s", fst_path, snd_path);
   } 
   
-  return NULL;
+  return buff;
 }
 
 //cria um path unix composto
 char* 
 nimps_make_multiple_path(char *fst_path, char *snd_path)
 {
-  char *tmp_path = NULL;
-
-  strcat(fst_path, "/");
-  tmp_path = strdup(fst_path);
-  if(!tmp_path)
+  char *buff = NULL;
+  buff = (char*) calloc(((strlen(fst_path) 
+                            + strlen(snd_path)) + TOK_BUFSIZE), sizeof(char));
+  if(!buff)
   {
-    errno = ENOMEM;
-    return NULL;
+    fprintf(stderr,"allocation error!\n");
+    exit(EXIT_FAILURE);
   }
     
-  strcat(tmp_path, snd_path);
-  return tmp_path;
+  sprintf(buff, "%s/%s", fst_path, snd_path);
+  return buff;
 }
 
 //cria um path unix a partir de uma lista de paths váidos

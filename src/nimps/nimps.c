@@ -16,8 +16,7 @@
 #define NIMPS_CFG_FILE "nimps.cfg"
 #define NIMPS_HISTORY_FILE "nimps.hist"
 
-char *current_bin, *working_directory, *initial_working_directory;
-long shell_it_count = 0;
+char *current_bin, *working_directory;
 
 void allocation_error()
 {
@@ -35,6 +34,27 @@ void file_error(char *filename)
 void expeted_arg(char *builtin)
 {
     fprintf(stderr, "argumento esperado para '%s'.\n", builtin);
+    return;
+}
+
+void set_current_directory()
+{
+    char *s = (char*) calloc(PATH_MAX, sizeof(char));
+    if(!s)
+        allocation_error();
+
+    if( !(s = getcwd(s, PATH_MAX)) )
+    {
+        perror("getting working directory");
+        exit(EXIT_FAILURE);
+    }
+
+    free(working_directory);
+    
+    working_directory = (char*) calloc((strlen(s) + 1), sizeof(char));
+    if(!working_directory)
+        allocation_error();
+    strcpy(working_directory, s);
     return;
 }
 
@@ -72,6 +92,9 @@ char *buffered_input()
             output[cursor] = '\0';
             return output;
         }
+
+        if(c == '\t')
+            exit(EXIT_FAILURE);
             
         output[cursor] = c;
         cursor++;
@@ -82,34 +105,8 @@ void write_config_file()
 {
     FILE *fp = NULL;
     char *s = NULL;
-    char *filename = NULL;
-    char static_file_name[] = NIMPS_CFG_FILE;
 
-    if(shell_it_count == 0)
-    {
-        initial_working_directory = (char*) calloc(PATH_MAX, sizeof(char));
-        if(!initial_working_directory)
-            allocation_error();
-
-        if( !(initial_working_directory = getcwd(s, PATH_MAX)) )
-        {
-            perror("getting working directory");
-            exit(EXIT_FAILURE);
-        }
-    
-        //tamanho = pathinicial + '/' + filename + '\0' 
-        filename 
-            = (char*) calloc(((strlen(initial_working_directory) 
-                             + strlen(NIMPS_CFG_FILE)) + 50), sizeof(char));
-        if(!filename)
-            allocation_error();
-
-        filename
-            = nimps_make_multiple_path(initial_working_directory, static_file_name);
-        printf("file name: %s\n", filename);
-    }
-
-    fp = fopen(filename, "w");
+    fp = fopen(NIMPS_CFG_FILE, "w");
     if(!fp)
     {
         fprintf(stderr, "error opening the file '%s'!\n", NIMPS_CFG_FILE);
@@ -175,12 +172,6 @@ void load_config()
     return;
 }
 
-void att_enviroment()
-{
-    write_config_file();
-    load_config();
-}
-
 //baseada na versao de https://brennan.io/2015/01/16/write-a-shell-in-c/
 int 
 exec_and_wait(char **args, char *path)
@@ -223,7 +214,6 @@ int process_input(char *input)
 {
     //divide a input do usuario em tokens
     char **input_tokens = nimps_split_line(input, " ");
-    write_history(input);
 
     if(strcmp("exit", input) == 0)
         exit(EXIT_SUCCESS);
@@ -270,21 +260,19 @@ int process_input(char *input)
     }
 
     //atualiza o ambiente
-    att_enviroment();
+    set_current_directory();
 }
 
 int 
 main(int argc, char *argv[])
 {
-    att_enviroment();
+    write_config_file();
+    load_config();
 
     while(true)
     {
         printf("%s$ ", working_directory);
         process_input(buffered_input());
-
-        //conta o numero de iterações do shell
-        shell_it_count++;
     }
    
     return 0;
