@@ -5,3 +5,6 @@ get_dir_file_names(char *dirname);
 
 int 
 print_all_files(char *dirname);
+
+void 
+list_directory();

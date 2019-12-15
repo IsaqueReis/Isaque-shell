@@ -123,7 +123,7 @@ void write_config_file()
     }
 
     fprintf(fp, "$WD=%s\n", s);
-    fprintf(fp, "$BIN=/bin\n");
+    fprintf(fp, "$BIN=../utils\n");
     
     fclose(fp);
 
@@ -221,11 +221,10 @@ int process_input(char *input)
         printf("%s\n", working_directory);
     else if(strcmp("dir", input) == 0)
     {
-        if( print_all_files("/bin") == -1)
+        if( print_all_files(current_bin) == -1)
             perror("print directoryies");
     }
-    else if(strcmp("bin", input) == 0)
-        printf("%s\n", current_bin);
+
     else if(strcmp("cd", input_tokens[0]) == 0)
     {
         printf("nimps cd!\n");
@@ -234,8 +233,13 @@ int process_input(char *input)
             expeted_arg(input_tokens[0]);
         else    
             change_directory(input_tokens[1]);
-    }
+    } 
 
+    else if(strcmp("ls", input_tokens[0]) == 0)
+    {
+        printf("nimps ls!\n");
+        list_directory();
+    }
     else
     {
         list exec_files = get_dir_file_names(current_bin);
@@ -249,7 +253,11 @@ int process_input(char *input)
                     nimps_make_multiple_path(current_bin, input_tokens[0]);
                 if(!absolute_exec_path)
                     allocation_error();
-
+                printf("exec_path: %s\n", absolute_exec_path);
+                printf("args: ");
+                for(int i = 0; input_tokens[i] != NULL; i++)
+                    printf("%s ", input_tokens[i]);
+                printf("\n");
                 exec_and_wait(input_tokens, absolute_exec_path);
                 num_of_equals++;
             }

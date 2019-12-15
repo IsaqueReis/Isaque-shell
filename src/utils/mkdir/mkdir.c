@@ -16,7 +16,7 @@ int parent = 0;
 int verbose = 0;
 int mode = 0;
 
-char program_name[] = "mkdir";
+char program_name[] = "nimps_mkdir";
 char program_author[] = "isaqreis";
 char program_version[] = "0.0.0.0.0.0.0.0.0.0.0.0.1";
 
@@ -77,7 +77,7 @@ void make_directoryies(list args, mode_t m)
 void print_usage()
 {
     printf("Uso: mkdir [OPTION]... DIRECTORY...\n");
-    printf("Cria o DIRECTORIO(os), se eles já não existem.\n");
+    printf("Cria o(s) DIRETORIO(os), se eles já não existem.\n");
     printf("\n");
     printf("-m, --mode=MODE   seta o filemode (como em chmod), não a=rwx - umask\n");
     printf("-p, --parents     se não houver erro, cria a arvore de diretórios.\n");
@@ -93,11 +93,21 @@ void print_version()
     exit(EXIT_SUCCESS);
 }
 
+void missing_operand()
+{
+    printf("%s: faltando argumentos\n", program_name);
+    printf("Use '%s -h' para mais informação.\n", program_name);
+    exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[])
 {
     char c = 0;
     list args = list_create();
 
+    if(argc  <= 1)
+        missing_operand();
+    
     while((c = nimps_getopt(argc, argv, "m:phv")) != -1)
     {
         //printf("%c\n", c);

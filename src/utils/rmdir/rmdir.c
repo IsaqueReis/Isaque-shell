@@ -14,7 +14,7 @@
 
 int parent = 0;
 
-char program_name[] = "rmdir";
+char program_name[] = "nimps_rmdir";
 char program_author[] = "isaqreis";
 char program_version[] = "0.0.0.0.0.0.0.0.0.0.0.0.1";
 
@@ -35,6 +35,13 @@ void print_version()
 {
     printf("\tPrograma:%s\n\tAutor: %s\n\tVersão: %s\n",program_name, program_author, program_version);
     exit(EXIT_SUCCESS);
+}
+
+void missing_operand()
+{
+    printf("%s: faltando argumentos\n", program_name);
+    printf("Use '%s -h' para mais informação.\n", program_name);
+    exit(EXIT_FAILURE);
 }
 
 int 
@@ -99,6 +106,9 @@ int main(int argc, char *argv[])
 {
     char c = 0;
     list args = list_create();
+    
+    if(argc <= 1)
+        missing_operand();
 
     while((c = nimps_getopt(argc, argv, "phv")) != -1)
     {
