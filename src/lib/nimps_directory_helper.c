@@ -75,8 +75,22 @@ char
         umask[i] = '-';
         umask[i + 1] = '\0'; 
     }
+
+    //define o tipo de arquivo 
+    if(S_ISBLK(st_mode))
+        umask[0] = 'b';
+    else if(S_ISCHR(st_mode))
+        umask[0] = 'c';
+    else if(S_ISDIR(st_mode))
+        umask[0] = 'd';
+    else if(S_ISFIFO(st_mode))
+        umask[0] = 'p';
+    else if(S_ISLNK(st_mode))
+        umask[0] = 'l';
+    else 
+        umask[0] = '-';
         
-    //3 iterações: dono, grupo e outros
+    //3 iterações: dono, grupo e outros 
     for(int i = 0; i < 3; i++)
     {
         if(bit_string[bit_string_indexer] == '1')
