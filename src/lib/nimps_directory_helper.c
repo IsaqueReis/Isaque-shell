@@ -16,6 +16,9 @@
 #define MAX_NBYTE_SIZE 64
 #define SYMBOLIC_UMASK_SIZE 10
 #define MAX_UID 11
+#define MAX_USERNAME 128
+#define MAX_TIMEBUFF 80
+#define MAX_LIST_WORDS 10
 
 //built-in strrev()
 void nimps_strrev(char *s)
@@ -239,6 +242,45 @@ list_directory()
 
     closedir(d);
     return 1;
+}
+
+//lista os diretórios recursivamente.
+//essa função se preocupa apenas em listar os nomes dos arquivos
+//em cada diretório. Se for uma pasta, uma chamada recursiva é
+//feita para listar o diretório abaixo. Caso não haja mais 
+//diretórios para serem listados a função volta para o nó 
+//mais acima da árvore.
+//baseada na função no tutorial: 
+//https://codeforwin.org/2018/03/c-program-to-list-all-files-in-a-directory-recursively.html
+void
+list_directory_recursively(char *base_directory, const int root)
+{
+    char absolute_file_name[LS_FILE_NAME_SIZE];
+    DIR *d;
+    struct dirent *dir;
+
+    d = opendir(base_directory);
+    if(!d)
+        return;
+
+    while((dir = readdir(d)) != NULL)
+    {
+        if( (dir->d_name[0] != '.') )
+        {
+            for(int i = 0; i < root; i++)
+            {
+                if(i % 2 == 0 || i == 0)
+                    printf("|");
+                else 
+                    printf(" ");
+            }
+
+            printf("%s\n", dir->d_name);
+            sprintf(absolute_file_name, "%s/%s", base_directory, dir->d_name);
+            list_directory_recursively(absolute_file_name, root + 2);
+        }
+    }
+    closedir(d);
 }
 
 

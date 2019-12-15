@@ -227,18 +227,16 @@ int process_input(char *input)
 
     else if(strcmp("cd", input_tokens[0]) == 0)
     {
-        printf("nimps cd!\n");
-
         if(input_tokens[1] == NULL)
             expeted_arg(input_tokens[0]);
         else    
-            change_directory(input_tokens[1]);
+            if ( change_directory(input_tokens[1]) != 0 )
+                perror("nimps cd");
     } 
 
     else if(strcmp("ls", input_tokens[0]) == 0)
     {
-        printf("nimps ls!\n");
-        list_directory();
+        list_directory_recursively(".", 0);
     }
     else
     {
