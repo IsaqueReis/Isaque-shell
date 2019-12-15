@@ -4,14 +4,18 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 
 #include "nimps_directory_helper.h"
+#include "nimps_make_path.h"
 #include "nimps_list.h"
 
 #define DIR_FILE_LIST_BUFF 1024
 #define LS_FILE_NAME_SIZE 4096
+#define PASSWD_MAX_SIZE  4096
 #define MAX_NBYTE_SIZE 64
 #define SYMBOLIC_UMASK_SIZE 10
+#define MAX_UID 11
 
 //built-in strrev()
 void nimps_strrev(char *s)
@@ -89,7 +93,7 @@ char
         umask[0] = 'l';
     else 
         umask[0] = '-';
-        
+
     //3 iterações: dono, grupo e outros 
     for(int i = 0; i < 3; i++)
     {
@@ -105,6 +109,38 @@ char
     }
 
     return umask;
+}
+
+char**
+get_user_info_by_id(uid_t userid)
+{
+    char **tokens = NULL;
+    char buffer[PASSWD_MAX_SIZE] = {'\0'};
+    char userid_buff[MAX_UID] = {'\0'};
+    FILE *fp = fopen("/etc/passwd", "r");
+    
+    if(!fp)
+    {
+        printf("arquivo '/etc/passwd' não encontrado!\n");
+        perror("passwd");
+        return NULL;
+    }
+
+    while( (fscanf(fp, "%s", buffer)) != EOF )
+    {
+        tokens = nimps_split_line(buffer, ":");
+        for(int i = 0; tokens[i] != NULL; i++)
+        {
+            if(tokens[2] != NULL)
+            {
+                sprintf(userid_buff, "%d", userid);
+                if(strcmp(userid_buff, tokens[2]) == 0)
+                    return tokens;
+            }
+        }
+    }
+
+    return NULL;
 }
 
 list
@@ -149,25 +185,60 @@ print_all_files(char *dirname)
     return 0;
 }
 
-void 
+
+//saida padrao do ls 
+// |----------  |1     |root root  |1323              |Jul 26 19:41     |filename
+//-|------------|------|-----------|------------------|-----------------|-------------
+// |permissoes  |links |dono grupo |tamanho(em bytes) |data modificacao |nome arquivo 
+// 
+//todas essas informações sao obitidas a partir da struct stat, que contem os
+//metadados da estrutura de dados inode representando o objeto do sistemas de
+//arquivos que representa o arquivo ou diretório listado.
+int 
 list_directory()
 {
-    list files_names = get_dir_file_names(".");
     char absolute_file_name[LS_FILE_NAME_SIZE];
     char mode_bits[MAX_NBYTE_SIZE] = {'\0'};
     char umask[SYMBOLIC_UMASK_SIZE + 1] = {'\0'};
     struct stat files_stat;
+    struct tm ts;
+    char time_buff[80];
+    char **user_info;
+    DIR *d;
+    struct dirent *dir;
 
-    for(int i = 0; i < count(files_names); i++)
+    d = opendir(".");
+    if(!d)
+        return 0;
+
+    while((dir = readdir(d)) != NULL)
     {
-        sprintf(absolute_file_name, "./%s", (char*) get(files_names, i));
+        sprintf(absolute_file_name, "./%s", dir->d_name);
         stat(absolute_file_name, &files_stat);
-        make_symbolic_umask(files_stat.st_mode, umask);
-        printf("%s ", umask);
 
-        printf("%zu", files_stat.st_size);
-        printf(" %s\n", (char*) get(files_names, i));
+        //printar umask
+        make_symbolic_umask(files_stat.st_mode, umask);
+        printf("%-10s ", umask);
+
+        printf ("%ld ", files_stat.st_nlink);
+
+        //printar usuario
+        if( !(user_info = get_user_info_by_id(files_stat.st_uid)) )
+            return 0;
+        printf ("%s ", user_info[0]);
+
+        printf("%-8zu ", files_stat.st_size);
+
+        //printar tempo
+        ts = *localtime(&files_stat.st_mtime);
+        strftime(time_buff, sizeof(time_buff), "%b %d %H:%M", &ts);
+        printf("%-12s ", time_buff);
+
+        printf(" %s\n", dir->d_name);
     }
+
+    closedir(d);
+    return 1;
 }
 
 

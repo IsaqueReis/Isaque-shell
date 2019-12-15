@@ -14,7 +14,8 @@ shell unix nada impressionante
    - [x] rmdir
    - [x] pwd
    - [x] cd
-   - [ ] ls(-l e -R)
+   - [x] ls(-l)
+   - [x] ls(-R)
    - [ ] cp
    - [x] ./ (executar um comando)
    # Funcionalidades obrigatórias
