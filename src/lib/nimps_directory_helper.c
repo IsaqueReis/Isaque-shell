@@ -10,6 +10,32 @@
 #define DIR_FILE_LIST_BUFF 1024
 #define LS_FILE_NAME_SIZE 4096
 
+list 
+to_binary(int n)
+{
+    list binary = list_create();
+    int value = n;
+
+    while(value > 0)
+    {
+        int tmp = value % 2;
+        if(tmp == 0)
+        {
+            int to_store = 0;
+            add(&to_store, (count(binary) + 1), binary);
+        }
+        else
+        {
+            int to_store = 1;
+            add(&to_store, (count(binary) + 1), binary);
+        }
+
+        value /= 2;
+    }
+
+    return binary;
+}
+
 list
 get_dir_file_names(char *dirname)
 {
@@ -65,8 +91,10 @@ list_directory()
         sprintf(absolute_file_name, "./%s", (char*) get(files_names, i));
         stat(absolute_file_name, &files_stat);
         
-        printf("%o ", files_stat.st_mode);
-        
+        list l = to_binary(files_stat.st_mode);
+        for(int i = 0; i < count(l); i++)
+            printf("%d", *(int*) get(l, i));
+        printf(" ");
         printf("%zu", files_stat.st_size);
         printf(" %s\n", (char*) get(files_names, i));
     }
