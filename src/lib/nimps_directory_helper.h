@@ -23,16 +23,7 @@ print_all_files(char *dirname);
 //todas essas informações sao obitidas a partir da struct stat, que contem os
 //metadados da estrutura de dados inode representando o objeto do sistemas de
 //arquivos que representa o arquivo ou diretório listado.
-typedef struct nimps_file_info
-{
-    char permissions[SYMBOLIC_UMASK_SIZE];
-    nlink_t noflinks;
-    char username[MAX_USERNAME];
-    off_t size;
-    char last_modified[MAX_TIMEBUFF];
-} nimps_file_info;
-
-int 
+void
 list_directory();
 
 //lista os diretórios recursivamente.

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/types.h>
+#include <fcntl.h>
 
 #include "../lib/nimps_make_path.h"
 #include "../lib/nimps_directory_helper.h"
@@ -123,7 +124,7 @@ void write_config_file()
     }
 
     fprintf(fp, "$WD=%s\n", s);
-    fprintf(fp, "$BIN=../utils\n");
+    fprintf(fp, "$BIN=/bin\n");
     
     fclose(fp);
 
@@ -214,6 +215,46 @@ int process_input(char *input)
 {
     //divide a input do usuario em tokens
     char **input_tokens = nimps_split_line(input, " ");
+    //file descriptors dos redirecionamentos
+    int out = 0;
+    int in = 0;
+
+    //flags para fazer a desalocação apenas quando houver I/O
+    int i_flag = 0;
+    int o_flag = 0;
+
+    //salva as stdout e stdin originais
+    int saved_stdout = dup(fileno(stdout)); 
+    int saved_stdin  = dup(fileno(stdin));
+
+    for(int i = 0; input_tokens[i] != NULL; i++)
+    {
+        if(strcmp(input_tokens[i], ">") == 0) //se houver um redirecionamento de entrada
+        {
+            if(input_tokens[i + 1] != NULL)
+            {
+                out = open(input_tokens[i + 1], O_RDWR|O_CREAT);
+                if(out == -1)
+                    perror(input_tokens[i + 1]);
+                if ( (dup2(out, fileno(stdout))) < 0)//agora a stdout é o arquivo de saida
+                    close(out);
+               o_flag = 1;
+            }
+        }
+
+        if(strcmp(input_tokens[i], "<") == 0) //se houver um redirecionamento de entrada
+        {
+            if(input_tokens[i + 1] != NULL)
+            {
+                in = open(input_tokens[i + 1], O_RDONLY);
+                if(in == -1)
+                    perror(input_tokens[i + 1]);
+                if ( (dup2(in, fileno(stdin))) < 0)//agora a stdin é o arquivo de entrada
+                    close(in);
+                i_flag = 1;
+            }
+        }
+    }
 
     if(strcmp("exit", input) == 0)
         exit(EXIT_SUCCESS);
@@ -236,7 +277,7 @@ int process_input(char *input)
 
     else if(strcmp("ls", input_tokens[0]) == 0)
     {
-        list_directory_recursively(".", 0);
+        list_directory();
     }
     else
     {
@@ -267,6 +308,33 @@ int process_input(char *input)
 
     //atualiza o ambiente
     set_current_directory();
+    //fechar o redirecionamento de saido caso houver
+    if(i_flag && o_flag)
+    {
+        //restaura a antiga stdout e stdin
+        dup2(saved_stdin, fileno(stdin)); 
+        dup2(saved_stdout, fileno(stdout)); 
+        close(saved_stdout);
+        close(saved_stdin);
+        close(out);
+        close(in);
+        
+    }
+
+    else if(i_flag)
+    {
+        dup2(saved_stdin, fileno(stdin)); 
+        close(saved_stdin);
+        close(in);
+    } 
+    
+    else if(o_flag)
+    {
+        dup2(saved_stdout, fileno(stdout)); 
+        close(saved_stdout);
+        close(out);
+    } 
+        
 }
 
 int 
@@ -274,11 +342,15 @@ main(int argc, char *argv[])
 {
     write_config_file();
     load_config();
-
     while(true)
     {
         printf("%s$ ", working_directory);
-        process_input(buffered_input());
+
+        char *s = buffered_input();
+        if(strlen(s) <= 0 || !(s))
+            continue;
+            
+        process_input(s);
     }
    
     return 0;

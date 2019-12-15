@@ -20,4 +20,4 @@ shell unix nada impressionante
    - [x] ./ (executar um comando)
    # Funcionalidades obrigatórias
    - [ ] pipes
-   - [ ] redirecionamento I/O
+   - [x] redirecionamento I/O

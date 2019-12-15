@@ -197,7 +197,7 @@ print_all_files(char *dirname)
 //todas essas informações sao obitidas a partir da struct stat, que contem os
 //metadados da estrutura de dados inode representando o objeto do sistemas de
 //arquivos que representa o arquivo ou diretório listado.
-int 
+void
 list_directory()
 {
     char absolute_file_name[LS_FILE_NAME_SIZE];
@@ -212,7 +212,7 @@ list_directory()
 
     d = opendir(".");
     if(!d)
-        return 0;
+        return;
 
     while((dir = readdir(d)) != NULL)
     {
@@ -227,7 +227,8 @@ list_directory()
 
         //printar usuario
         if( !(user_info = get_user_info_by_id(files_stat.st_uid)) )
-            return 0;
+            return;
+            
         printf ("%s ", user_info[0]);
 
         printf("%-8zu ", files_stat.st_size);
@@ -241,7 +242,7 @@ list_directory()
     }
 
     closedir(d);
-    return 1;
+    return;
 }
 
 //lista os diretórios recursivamente.
