@@ -14,13 +14,39 @@
 #define PATH_MAX 4096
 #define INPUT_BUFF_SIZE 4096
 #define NIMPS_CFG_FILE "nimps.cfg"
+#define NIMPS_HISTORY_FILE "nimps.hist"
 
-char *current_bin, *working_directory;
+char *current_bin, *working_directory, *initial_working_directory;
+long shell_it_count = 0;
 
 void allocation_error()
 {
     fprintf(stderr, "allocation error!");
     exit(EXIT_FAILURE);
+}
+
+void file_error(char *filename)
+{
+    fprintf(stderr, "error processando o arquivo '%s'.\n", filename);
+    perror("nimps");
+    exit(EXIT_FAILURE);
+}
+
+void expeted_arg(char *builtin)
+{
+    fprintf(stderr, "argumento esperado para '%s'.\n", builtin);
+    return;
+}
+
+void write_history(char *input)
+{
+    FILE *fp = fopen(NIMPS_HISTORY_FILE, "a");
+    if(!fp)
+        file_error(NIMPS_HISTORY_FILE);
+
+    fprintf(fp, "%s\n", input);
+
+    fclose(fp);
 }
 
 char *buffered_input()
@@ -42,19 +68,48 @@ char *buffered_input()
         }
 
         if(c == '\n' || c == EOF)
+        {
+            output[cursor] = '\0';
             return output;
-
+        }
+            
         output[cursor] = c;
         cursor++;
     }
 }
 
-void load_cwd()
+void write_config_file()
 {
     FILE *fp = NULL;
     char *s = NULL;
+    char *filename = NULL;
+    char static_file_name[] = NIMPS_CFG_FILE;
 
-    fp = fopen(NIMPS_CFG_FILE, "w");
+    if(shell_it_count == 0)
+    {
+        initial_working_directory = (char*) calloc(PATH_MAX, sizeof(char));
+        if(!initial_working_directory)
+            allocation_error();
+
+        if( !(initial_working_directory = getcwd(s, PATH_MAX)) )
+        {
+            perror("getting working directory");
+            exit(EXIT_FAILURE);
+        }
+    
+        //tamanho = pathinicial + '/' + filename + '\0' 
+        filename 
+            = (char*) calloc(((strlen(initial_working_directory) 
+                             + strlen(NIMPS_CFG_FILE)) + 50), sizeof(char));
+        if(!filename)
+            allocation_error();
+
+        filename
+            = nimps_make_multiple_path(initial_working_directory, static_file_name);
+        printf("file name: %s\n", filename);
+    }
+
+    fp = fopen(filename, "w");
     if(!fp)
     {
         fprintf(stderr, "error opening the file '%s'!\n", NIMPS_CFG_FILE);
@@ -72,40 +127,12 @@ void load_cwd()
 
     fprintf(fp, "$WD=%s\n", s);
     fprintf(fp, "$BIN=/bin\n");
+    
     fclose(fp);
 
     return;
 }
 
-//baseada na versao de https://brennan.io/2015/01/16/write-a-shell-in-c/
-int 
-exec_and_wait(char **args, char *path)
-{
-    pid_t pid, wpid;
-    int status = 0;
-
-    pid = fork();
-    if(pid == 0)
-    {
-        //executa o arquivo
-        if( execvp(path, args) == -1)
-            perror("nimps");
-        exit(EXIT_FAILURE);
-    }
-    else if(pid < 0)
-    {
-        perror("nimps");
-    }
-    else 
-    {
-        do
-        {
-            wpid = waitpid(pid, &status, WUNTRACED);
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-    }
-
-    return 1;
-}
 
 //carrega as variaveis de configuracao do arquivo
 void load_config()
@@ -148,14 +175,56 @@ void load_config()
     return;
 }
 
+void att_enviroment()
+{
+    write_config_file();
+    load_config();
+}
+
+//baseada na versao de https://brennan.io/2015/01/16/write-a-shell-in-c/
+int 
+exec_and_wait(char **args, char *path)
+{
+    pid_t pid, wpid;
+    int status = 0;
+
+    pid = fork();
+    if(pid == 0)
+    {
+        //executa o arquivo
+        if( execvp(path, args) == -1)
+            perror("nimps");
+        exit(EXIT_FAILURE);
+    }
+    else if(pid < 0)
+    {
+        perror("nimps");
+    }
+    else 
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+
+    return 1;
+}
+
 int 
 change_directory(char *path_to)
 {
-
+    int ret = 0;
+    if( (ret = chdir(path_to)) != 0)
+        return ret;
 }
 
 int process_input(char *input)
 {
+    //divide a input do usuario em tokens
+    char **input_tokens = nimps_split_line(input, " ");
+    write_history(input);
+
     if(strcmp("exit", input) == 0)
         exit(EXIT_SUCCESS);
     else if(strcmp("pwd", input) == 0)
@@ -167,11 +236,21 @@ int process_input(char *input)
     }
     else if(strcmp("bin", input) == 0)
         printf("%s\n", current_bin);
+    else if(strcmp("cd", input_tokens[0]) == 0)
+    {
+        printf("nimps cd!\n");
+
+        if(input_tokens[1] == NULL)
+            expeted_arg(input_tokens[0]);
+        else    
+            change_directory(input_tokens[1]);
+    }
+
     else
     {
         list exec_files = get_dir_file_names(current_bin);
-        char **input_tokens = nimps_split_line(input, " ");
-
+        int num_of_equals = 0; //conta o numero de matches com a pasta de executaveis
+        
         for(int i = 0; i < count(exec_files); i++)
         {
             if(strcmp(input_tokens[0], (char*) get(exec_files, i)) == 0)
@@ -180,23 +259,32 @@ int process_input(char *input)
                     nimps_make_multiple_path(current_bin, input_tokens[0]);
                 if(!absolute_exec_path)
                     allocation_error();
-                    
+
                 exec_and_wait(input_tokens, absolute_exec_path);
+                num_of_equals++;
             }
         }
+
+        if(num_of_equals == 0)
+            printf("%s: comando não encontrado\n", input);
     }
+
+    //atualiza o ambiente
+    att_enviroment();
 }
 
 int 
 main(int argc, char *argv[])
 {
-    load_cwd();     //cria o arquivo com as variaveis de ambiente
-    load_config();  //carrega as configurações do arquivo
+    att_enviroment();
 
     while(true)
     {
-        printf("nimps: ");
+        printf("%s$ ", working_directory);
         process_input(buffered_input());
+
+        //conta o numero de iterações do shell
+        shell_it_count++;
     }
    
     return 0;
