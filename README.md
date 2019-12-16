@@ -19,5 +19,5 @@ shell unix nada impressionante
    - [ ] cp
    - [x] ./ (executar um comando)
    # Funcionalidades obrigatórias
-   - [ ] pipes
+   - [x] pipes (parcialmente)
    - [x] redirecionamento I/O
