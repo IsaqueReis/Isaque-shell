@@ -16,6 +16,7 @@
 #define INPUT_BUFF_SIZE 4096
 #define NIMPS_CFG_FILE "nimps.cfg"
 #define NIMPS_HISTORY_FILE "nimps.hist"
+#define NIMPS_USER_CFG "nimps_user.cfg"
 #define COMMAND_TOK_SIZE 1024
 #define COMMAND_ARG_MAX_SIZE 4096
 
@@ -126,7 +127,6 @@ void write_config_file()
     }
 
     fprintf(fp, "$WD=%s\n", s);
-    fprintf(fp, "$BIN=/bin\n");
     
     fclose(fp);
 
@@ -159,21 +159,43 @@ void load_config()
                 allocation_error();
 
             strcpy(working_directory, tokens[1]);
-        }
-
-        else if( strcmp(tokens[0], "$BIN") == 0 )
-        {
-            current_bin = (char*) calloc(strlen(tokens[1] + 1), sizeof(char));
-            if(!working_directory)
-                allocation_error();
-
-            strcpy(current_bin, tokens[1]);
-        }
-        
+        }        
     }
 
     return;
 }
+
+//carrega as variaveis de configuracao do arquivo
+void load_user_bin()
+{
+    FILE *fp;
+    char s[PATH_MAX] = {'\0'};
+    char *output = NULL;
+    fp = fopen(NIMPS_USER_CFG, "r");
+    if(!fp)
+    {
+        fprintf(stderr, "error opening the file '%s'!\n", NIMPS_CFG_FILE);
+        perror(NIMPS_CFG_FILE);
+        exit(EXIT_FAILURE);
+    } 
+
+    while( (fscanf(fp, "%s", s)) != EOF )
+    {
+        char **tokens = nimps_split_line(s, "=");
+
+        if( strcmp(tokens[0], "$BIN") == 0 )
+        {
+            current_bin = (char*) calloc(strlen(tokens[1] + 1), sizeof(char));
+            if(!current_bin)
+                allocation_error();
+
+            strcpy(current_bin, tokens[1]);
+        }        
+    }
+
+    return;
+}
+
 
 //baseada na versao de https://brennan.io/2015/01/16/write-a-shell-in-c/
 int 
@@ -356,7 +378,7 @@ int process_input(char *input)
             if ( change_directory(input_tokens[1]) != 0 )
                 perror("nimps cd");
     } 
-    /*
+    
     else if(strcmp("ls", input_tokens[0]) == 0)
     {
         if(strcmp(input_tokens[1], "-l") == 0)
@@ -366,7 +388,7 @@ int process_input(char *input)
         else    
             printf("ls: argumento invalido\n");
     }
-    */
+    
     else
     {
         list exec_files = get_dir_file_names(current_bin);
@@ -485,7 +507,9 @@ main(int argc, char *argv[])
 {
     write_config_file();
     load_config();
-
+    load_user_bin();
+    printf("%s\n", current_bin);
+    
     while(true)
     {
         printf("%s$ ", working_directory);
