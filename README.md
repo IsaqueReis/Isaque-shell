@@ -15,14 +15,14 @@ O executável será gerado no diretório atual.
 
 Lista de funcionalidades embutidas do shell
 ================
-   - [ ] !exec (executar programa)
-   - [ ] mkdir
-   - [ ] rmdir
-   - [ ] pwd
-   - [ ] cd
-   - [ ] ls(-l)
-   - [ ] ls(-R)
-   - [ ] cp
-   - [ ] pipes
-   - [ ] redirecionamento de entrada e saída
-   - [ ] cores
+        - [ ] !exec (executar programa)
+        - [ ] mkdir
+        - [ ] rmdir
+        - [ ] pwd
+        - [ ] cd
+        - [ ] ls(-l)
+        - [ ] ls(-R)
+        - [ ] cp
+        - [ ] pipes
+        - [ ] redirecionamento de entrada e saída
+        - [ ] cores
