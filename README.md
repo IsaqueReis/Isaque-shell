@@ -13,9 +13,9 @@ Compilação
         
 O executável será gerado no diretório atual.
 
-Lista de tarefas
+Lista de funcionalidades embutidas do shell
 ================
-
+   - [ ] !exec (executar programa)
    - [ ] mkdir
    - [ ] rmdir
    - [ ] pwd
@@ -23,7 +23,6 @@ Lista de tarefas
    - [ ] ls(-l)
    - [ ] ls(-R)
    - [ ] cp
-   - [ ] ./ (executar um comando)
-   - [ ] pipes (parcialmente)
-   - [ ] redirecionamento I/O
+   - [ ] pipes
+   - [ ] redirecionamento de entrada e saída
    - [ ] cores
