@@ -16,8 +16,6 @@ O executável será gerado no diretório atual.
 Lista de funcionalidades embutidas do shell
 ================
 
-PROGRESSO: 5% de 100% |##                      |
-
 - [x] refatorar projeto
 - [ ] !exec (executar programa)
 - [ ] mkdir
