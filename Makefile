@@ -8,11 +8,11 @@ LDIR=lib
 
 LIBS=-lm
 
-_DEPS = input_handler.h
+_DEPS = input_handler.h error_handler.h linked_list.h
 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = shell.o input_handler.o 
+_OBJ = shell.o input_handler.o error_handler.o linked_list.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _SRCDIR = %.c

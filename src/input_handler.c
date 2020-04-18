@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../include/input_handler.h"
+#include "../include/error_handler.h"
 
 #define INPUT_BUFF_SIZE                                                    1048
 
@@ -13,10 +14,7 @@ char *read_line()
     int cursor = 0;
 
     if(!output)
-    {
-        fprintf(stderr,"allocation error!");
-        exit(1);
-    }
+        fatal_error("allocation");
 
     while((c = getchar()))
     {
@@ -24,10 +22,7 @@ char *read_line()
         {
             output = realloc(output, (cursor + INPUT_BUFF_SIZE));
             if(!output)
-            {
-                fprintf(stderr,"allocation error!");
-                exit(1);
-            }
+                fatal_error("allocation");
         }
 
         if(c == '\n' || c == EOF)
@@ -39,5 +34,6 @@ char *read_line()
         output[cursor] = c;
         cursor++;
     }
+
     return output;
 }
