@@ -12,9 +12,8 @@ Compilação
 
         make
         make clean
-
-2. Executar o shell
-        ./ishell
+        
+O executável será gerado no diretório atual.
 
 Lista de tarefas
 ================
