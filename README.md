@@ -6,7 +6,7 @@ Outrora um infeliz trabalho de faculdade mal feito, o ishell procura trazer as f
 Compilação
 ==========
 
-1. Compilar o ishell
+1. Compilar o ishell:
 
         make
         make clean
