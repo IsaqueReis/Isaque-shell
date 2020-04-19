@@ -13,7 +13,7 @@ Compilação
         
 O executável será gerado no diretório atual.
 
-Lista de funcionalidades embutidas do shell
+Lista de funcionalidades do shell
 ===========================================
 
 - [x] refatorar projeto
