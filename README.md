@@ -14,10 +14,10 @@ Compilação
 O executável será gerado no diretório atual.
 
 Lista de funcionalidades embutidas do shell
-================
+===========================================
 
 - [x] refatorar projeto
-- [ ] !exec (executar programa)
+- [x] !exec (executar programa)
 - [ ] mkdir
 - [ ] rmdir
 - [ ] pwd
